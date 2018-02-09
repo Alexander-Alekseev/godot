@@ -263,7 +263,6 @@ void CanvasItemEditor::_snap_other_nodes(Point2 p_value, Point2 &r_current_snap,
 }
 
 Point2 CanvasItemEditor::snap_point(Point2 p_target, unsigned int p_modes, const CanvasItem *p_canvas_item, unsigned int p_forced_modes) {
-	Point2 dist[2];
 	bool snapped[2] = { false, false };
 
 	// Smart snap using the canvas position
