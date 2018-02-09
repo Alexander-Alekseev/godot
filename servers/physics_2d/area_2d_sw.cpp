@@ -188,14 +188,18 @@ void Area2DSW::call_queries() {
 
 		for (Map<BodyKey, BodyState>::Element *E = monitored_bodies.front(); E; E = E->next()) {
 
-			if (E->get().state == 0)
+			const auto body_state = E->get();
+
+			if (body_state.state == 0)
 				continue; //nothing happened
 
-			res[0] = E->get().state > 0 ? Physics2DServer::AREA_BODY_ADDED : Physics2DServer::AREA_BODY_REMOVED;
-			res[1] = E->key().rid;
-			res[2] = E->key().instance_id;
-			res[3] = E->key().body_shape;
-			res[4] = E->key().area_shape;
+			auto body_key = E->key();
+
+			res[0] = body_state.state > 0 ? Physics2DServer::AREA_BODY_ADDED : Physics2DServer::AREA_BODY_REMOVED;
+			res[1] = body_key.rid;
+			res[2] = body_key.instance_id;
+			res[3] = body_key.body_shape;
+			res[4] = body_key.area_shape;
 
 			Variant::CallError ce;
 			obj->call(monitor_callback_method, (const Variant **)resptr, 5, ce);

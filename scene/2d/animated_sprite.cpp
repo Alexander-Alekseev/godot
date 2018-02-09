@@ -171,13 +171,14 @@ Array SpriteFrames::_get_animations() const {
 
 	Array anims;
 	for (Map<StringName, Anim>::Element *E = animations.front(); E; E = E->next()) {
+		auto anim = E->get();
 		Dictionary d;
 		d["name"] = E->key();
-		d["speed"] = E->get().speed;
-		d["loop"] = E->get().loop;
+		d["speed"] = anim.speed;
+		d["loop"] = anim.loop;
 		Array frames;
-		for (int i = 0; i < E->get().frames.size(); i++) {
-			frames.push_back(E->get().frames[i]);
+		for (int i = 0; i < anim.frames.size(); i++) {
+			frames.push_back(anim.frames[i]);
 		}
 		d["frames"] = frames;
 		anims.push_back(d);

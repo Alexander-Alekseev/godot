@@ -798,9 +798,10 @@ void EditorAssetLibrary::_update_image_queue() {
 
 	List<int> to_delete;
 	for (Map<int, ImageQueue>::Element *E = image_queue.front(); E; E = E->next()) {
-		if (!E->get().active && current_images < max_images) {
+		auto image_queue = E->get();
+		if (!image_queue.active && current_images < max_images) {
 
-			String cache_filename_base = EditorSettings::get_singleton()->get_cache_dir().plus_file("assetimage_" + E->get().image_url.md5_text());
+			String cache_filename_base = EditorSettings::get_singleton()->get_cache_dir().plus_file("assetimage_" + image_queue.image_url.md5_text());
 			Vector<String> headers;
 
 			if (FileAccess::exists(cache_filename_base + ".etag") && FileAccess::exists(cache_filename_base + ".data")) {
@@ -811,15 +812,15 @@ void EditorAssetLibrary::_update_image_queue() {
 				}
 			}
 
-			print_line("REQUEST ICON FOR: " + itos(E->get().asset_id));
-			Error err = E->get().request->request(E->get().image_url, headers);
+			print_line("REQUEST ICON FOR: " + itos(image_queue.asset_id));
+			Error err = image_queue.request->request(image_queue.image_url, headers);
 			if (err != OK) {
 				to_delete.push_back(E->key());
 			} else {
-				E->get().active = true;
+				image_queue.active = true;
 			}
 			current_images++;
-		} else if (E->get().active) {
+		} else if (image_queue.active) {
 			current_images++;
 		}
 	}
@@ -1391,12 +1392,13 @@ EditorAssetLibrary::EditorAssetLibrary(bool p_templates_only) {
 	support = memnew(MenuButton);
 	search_hb2->add_child(support);
 	support->set_text(TTR("Support.."));
-	support->get_popup()->add_check_item(TTR("Official"), SUPPORT_OFFICIAL);
-	support->get_popup()->add_check_item(TTR("Community"), SUPPORT_COMMUNITY);
-	support->get_popup()->add_check_item(TTR("Testing"), SUPPORT_TESTING);
-	support->get_popup()->set_item_checked(SUPPORT_OFFICIAL, true);
-	support->get_popup()->set_item_checked(SUPPORT_COMMUNITY, true);
-	support->get_popup()->connect("id_pressed", this, "_support_toggled");
+	auto popup = support->get_popup();
+	popup->add_check_item(TTR("Official"), SUPPORT_OFFICIAL);
+	popup->add_check_item(TTR("Community"), SUPPORT_COMMUNITY);
+	popup->add_check_item(TTR("Testing"), SUPPORT_TESTING);
+	popup->set_item_checked(SUPPORT_OFFICIAL, true);
+	popup->set_item_checked(SUPPORT_COMMUNITY, true);
+	popup->connect("id_pressed", this, "_support_toggled");
 
 	/////////
 

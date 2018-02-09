@@ -127,7 +127,7 @@ public:
 	_FORCE_INLINE_ void set_spOv_gravityPointAttenuation(real_t p_GPA) { spOv_gravityPointAttenuation = p_GPA; }
 	_FORCE_INLINE_ real_t get_spOv_gravityPointAttenuation() { return spOv_gravityPointAttenuation; }
 
-	_FORCE_INLINE_ void set_spOv_gravityVec(Vector3 p_vec) { spOv_gravityVec = p_vec; }
+	_FORCE_INLINE_ void set_spOv_gravityVec(const Vector3 &p_vec) { spOv_gravityVec = p_vec; }
 	_FORCE_INLINE_ const Vector3 &get_spOv_gravityVec() const { return spOv_gravityVec; }
 
 	_FORCE_INLINE_ void set_spOv_gravityMag(real_t p_gravityMag) { spOv_gravityMag = p_gravityMag; }

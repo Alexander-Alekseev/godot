@@ -138,17 +138,18 @@ Ref<AudioStreamPlayback> AudioStreamOGGVorbis::instance_playback() {
 
 	ovs.instance();
 	ovs->vorbis_stream = Ref<AudioStreamOGGVorbis>(this);
-	ovs->ogg_alloc.alloc_buffer = (char *)AudioServer::get_singleton()->audio_data_alloc(decode_mem_size);
-	ovs->ogg_alloc.alloc_buffer_length_in_bytes = decode_mem_size;
+	auto ogg_alloc = ovs->ogg_alloc;
+	ogg_alloc.alloc_buffer = (char *)AudioServer::get_singleton()->audio_data_alloc(decode_mem_size);
+	ogg_alloc.alloc_buffer_length_in_bytes = decode_mem_size;
 	ovs->frames_mixed = 0;
 	ovs->active = false;
 	ovs->loops = 0;
 	int error;
-	ovs->ogg_stream = stb_vorbis_open_memory((const unsigned char *)data, data_len, &error, &ovs->ogg_alloc);
+	ovs->ogg_stream = stb_vorbis_open_memory((const unsigned char *)data, data_len, &error, &ogg_alloc);
 	if (!ovs->ogg_stream) {
 
-		AudioServer::get_singleton()->audio_data_free(ovs->ogg_alloc.alloc_buffer);
-		ovs->ogg_alloc.alloc_buffer = NULL;
+		AudioServer::get_singleton()->audio_data_free(ogg_alloc.alloc_buffer);
+		ogg_alloc.alloc_buffer = NULL;
 		ERR_FAIL_COND_V(!ovs->ogg_stream, Ref<AudioStreamPlaybackOGGVorbis>());
 	}
 

@@ -262,46 +262,48 @@ void AnimationPlayer::_ensure_node_caches(AnimationData *p_anim) {
 		key.id = id;
 		key.bone_idx = bone_idx;
 
-		if (node_cache_map.has(key)) {
+		if (!node_cache_map.has(key)) {
 
-			p_anim->node_cache[i] = &node_cache_map[key];
-		} else {
+			auto track_node_cache = TrackNodeCache();
 
-			node_cache_map[key] = TrackNodeCache();
-
-			p_anim->node_cache[i] = &node_cache_map[key];
-			p_anim->node_cache[i]->path = a->track_get_path(i);
-			p_anim->node_cache[i]->node = child;
-			p_anim->node_cache[i]->resource = resource;
-			p_anim->node_cache[i]->node_2d = Object::cast_to<Node2D>(child);
+			track_node_cache.path = a->track_get_path(i);
+			track_node_cache.node = child;
+			track_node_cache.resource = resource;
+			track_node_cache.node_2d = Object::cast_to<Node2D>(child);
 			if (a->track_get_type(i) == Animation::TYPE_TRANSFORM) {
 				// special cases and caches for transform tracks
 
 				// cache spatial
-				p_anim->node_cache[i]->spatial = Object::cast_to<Spatial>(child);
+				track_node_cache.spatial = Object::cast_to<Spatial>(child);
 				// cache skeleton
-				p_anim->node_cache[i]->skeleton = Object::cast_to<Skeleton>(child);
-				if (p_anim->node_cache[i]->skeleton) {
+				track_node_cache.skeleton = Object::cast_to<Skeleton>(child);
+				if (track_node_cache.skeleton) {
 
 					if (a->track_get_path(i).get_subname_count() == 1) {
 						StringName bone_name = a->track_get_path(i).get_subname(0);
 
-						p_anim->node_cache[i]->bone_idx = p_anim->node_cache[i]->skeleton->find_bone(bone_name);
-						if (p_anim->node_cache[i]->bone_idx < 0) {
+						track_node_cache.bone_idx = p_anim->node_cache[i]->skeleton->find_bone(bone_name);
+						if (track_node_cache.bone_idx < 0) {
 							// broken track (nonexistent bone)
-							p_anim->node_cache[i]->skeleton = NULL;
-							p_anim->node_cache[i]->spatial = NULL;
+							track_node_cache.skeleton = NULL;
+							track_node_cache.spatial = NULL;
 							printf("bone is %ls\n", String(bone_name).c_str());
 							ERR_CONTINUE(p_anim->node_cache[i]->bone_idx < 0);
-						} else {
 						}
-					} else {
+						else {
+						}
+					}
+					else {
 						// no property, just use spatialnode
-						p_anim->node_cache[i]->skeleton = NULL;
+						track_node_cache.skeleton = NULL;
 					}
 				}
 			}
+
+			node_cache_map[key] = track_node_cache;
 		}
+
+		p_anim->node_cache[i] = &node_cache_map[key];
 
 		if (a->track_get_type(i) == Animation::TYPE_VALUE) {
 
@@ -1248,10 +1250,11 @@ AnimatedValuesBackup AnimationPlayer::backup_animated_values() {
 			} else {
 				for (Map<StringName, TrackNodeCache::PropertyAnim>::Element *E = nc->property_anim.front(); E; E = E->next()) {
 					AnimatedValuesBackup::Entry entry;
-					entry.object = E->value().object;
-					entry.subpath = E->value().subpath;
+					auto property_anim = E->value();
+					entry.object = property_anim.object;
+					entry.subpath = property_anim.subpath;
 					bool valid;
-					entry.value = E->value().object->get_indexed(E->value().subpath, &valid);
+					entry.value = property_anim.object->get_indexed(property_anim.subpath, &valid);
 					entry.bone_idx = -1;
 					if (valid)
 						backup.entries.push_back(entry);

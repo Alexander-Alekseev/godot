@@ -729,7 +729,8 @@ void AnimationKeyEditor::_anim_duplicate_keys(bool transpose) {
 
 			int existing_idx = animation->track_find_key(dst_track, dst_time, true);
 
-			undo_redo->add_do_method(animation.ptr(), "track_insert_key", dst_track, dst_time, animation->track_get_key_value(E->key().track, E->key().key), animation->track_get_key_transition(E->key().track, E->key().key));
+			auto selected_key = E->key();
+			undo_redo->add_do_method(animation.ptr(), "track_insert_key", dst_track, dst_time, animation->track_get_key_value(selected_key.track, selected_key.key), animation->track_get_key_transition(selected_key.track, selected_key.key));
 			undo_redo->add_undo_method(animation.ptr(), "track_remove_key_at_position", dst_track, dst_time);
 
 			Pair<int, float> p;
@@ -1776,8 +1777,9 @@ void AnimationKeyEditor::_anim_delete_keys() {
 
 		for (Map<SelectedKey, KeyInfo>::Element *E = selection.back(); E; E = E->prev()) {
 
-			undo_redo->add_do_method(animation.ptr(), "track_remove_key", E->key().track, E->key().key);
-			undo_redo->add_undo_method(animation.ptr(), "track_insert_key", E->key().track, E->get().pos, animation->track_get_key_value(E->key().track, E->key().key), animation->track_get_key_transition(E->key().track, E->key().key));
+			auto selected_key = E->key();
+			undo_redo->add_do_method(animation.ptr(), "track_remove_key", selected_key.track, selected_key.key);
+			undo_redo->add_undo_method(animation.ptr(), "track_insert_key", selected_key.track, E->get().pos, animation->track_get_key_value(selected_key.track, selected_key.key), animation->track_get_key_transition(selected_key.track, selected_key.key));
 		}
 		undo_redo->add_do_method(this, "_clear_selection_for_anim", animation);
 		undo_redo->add_undo_method(this, "_clear_selection_for_anim", animation);
@@ -2952,15 +2954,16 @@ void AnimationKeyEditor::_notification(int p_what) {
 			zoomicon->set_stretch_mode(TextureRect::STRETCH_KEEP_CENTERED);
 
 			menu_track->set_icon(get_icon("Tools", "EditorIcons"));
-			menu_track->get_popup()->add_item(TTR("Scale Selection"), TRACK_MENU_SCALE);
-			menu_track->get_popup()->add_item(TTR("Scale From Cursor"), TRACK_MENU_SCALE_PIVOT);
-			menu_track->get_popup()->add_separator();
-			menu_track->get_popup()->add_item(TTR("Duplicate Selection"), TRACK_MENU_DUPLICATE);
-			menu_track->get_popup()->add_item(TTR("Duplicate Transposed"), TRACK_MENU_DUPLICATE_TRANSPOSE);
-			menu_track->get_popup()->add_separator();
-			menu_track->get_popup()->add_item(TTR("Goto Next Step"), TRACK_MENU_NEXT_STEP, KEY_MASK_CMD | KEY_RIGHT);
-			menu_track->get_popup()->add_item(TTR("Goto Prev Step"), TRACK_MENU_PREV_STEP, KEY_MASK_CMD | KEY_LEFT);
-			menu_track->get_popup()->add_separator();
+			auto popup = menu_track->get_popup();
+			popup->add_item(TTR("Scale Selection"), TRACK_MENU_SCALE);
+			popup->add_item(TTR("Scale From Cursor"), TRACK_MENU_SCALE_PIVOT);
+			popup->add_separator();
+			popup->add_item(TTR("Duplicate Selection"), TRACK_MENU_DUPLICATE);
+			popup->add_item(TTR("Duplicate Transposed"), TRACK_MENU_DUPLICATE_TRANSPOSE);
+			popup->add_separator();
+			popup->add_item(TTR("Goto Next Step"), TRACK_MENU_NEXT_STEP, KEY_MASK_CMD | KEY_RIGHT);
+			popup->add_item(TTR("Goto Prev Step"), TRACK_MENU_PREV_STEP, KEY_MASK_CMD | KEY_LEFT);
+			popup->add_separator();
 			PopupMenu *tpp = memnew(PopupMenu);
 			tpp->add_item(TTR("Linear"), TRACK_MENU_SET_ALL_TRANS_LINEAR);
 			tpp->add_item(TTR("Constant"), TRACK_MENU_SET_ALL_TRANS_CONSTANT);
@@ -2972,10 +2975,10 @@ void AnimationKeyEditor::_notification(int p_what) {
 			tpp->connect("id_pressed", this, "_menu_track");
 			optimize_dialog->connect("confirmed", this, "_animation_optimize");
 
-			menu_track->get_popup()->add_child(tpp);
+			popup->add_child(tpp);
 
-			menu_track->get_popup()->add_item(TTR("Optimize Animation"), TRACK_MENU_OPTIMIZE);
-			menu_track->get_popup()->add_item(TTR("Clean-Up Animation"), TRACK_MENU_CLEAN_UP);
+			popup->add_item(TTR("Optimize Animation"), TRACK_MENU_OPTIMIZE);
+			popup->add_item(TTR("Clean-Up Animation"), TRACK_MENU_CLEAN_UP);
 
 			curve_linear->connect("pressed", this, "_menu_track", varray(CURVE_SET_LINEAR));
 			curve_in->connect("pressed", this, "_menu_track", varray(CURVE_SET_IN));
@@ -3864,11 +3867,12 @@ AnimationKeyEditor::AnimationKeyEditor() {
 
 	menu_add_track = memnew(MenuButton);
 	hb->add_child(menu_add_track);
-	menu_add_track->get_popup()->connect("id_pressed", this, "_menu_add_track");
+	auto popup = menu_add_track->get_popup();
+	popup->connect("id_pressed", this, "_menu_add_track");
 	menu_add_track->set_tooltip(TTR("Add new tracks."));
-	menu_add_track->get_popup()->add_icon_item(get_icon("KeyValue", "EditorIcons"), "Add Normal Track", ADD_TRACK_MENU_ADD_VALUE_TRACK);
-	menu_add_track->get_popup()->add_icon_item(get_icon("KeyXform", "EditorIcons"), "Add Transform Track", ADD_TRACK_MENU_ADD_TRANSFORM_TRACK);
-	menu_add_track->get_popup()->add_icon_item(get_icon("KeyCall", "EditorIcons"), "Add Call Func Track", ADD_TRACK_MENU_ADD_CALL_TRACK);
+	popup->add_icon_item(get_icon("KeyValue", "EditorIcons"), "Add Normal Track", ADD_TRACK_MENU_ADD_VALUE_TRACK);
+	popup->add_icon_item(get_icon("KeyXform", "EditorIcons"), "Add Transform Track", ADD_TRACK_MENU_ADD_TRANSFORM_TRACK);
+	popup->add_icon_item(get_icon("KeyCall", "EditorIcons"), "Add Call Func Track", ADD_TRACK_MENU_ADD_CALL_TRACK);
 
 	move_up_button = memnew(ToolButton);
 	hb->add_child(move_up_button);

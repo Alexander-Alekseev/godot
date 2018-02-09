@@ -122,13 +122,14 @@ void Area2D::_body_enter_tree(ObjectID p_id) {
 
 	Map<ObjectID, BodyState>::Element *E = body_map.find(p_id);
 	ERR_FAIL_COND(!E);
-	ERR_FAIL_COND(E->get().in_tree);
+	auto body_state = E->get();
+	ERR_FAIL_COND(body_state.in_tree);
 
-	E->get().in_tree = true;
+	body_state.in_tree = true;
 	emit_signal(SceneStringNames::get_singleton()->body_entered, node);
-	for (int i = 0; i < E->get().shapes.size(); i++) {
+	for (int i = 0; i < body_state.shapes.size(); i++) {
 
-		emit_signal(SceneStringNames::get_singleton()->body_shape_entered, p_id, node, E->get().shapes[i].body_shape, E->get().shapes[i].area_shape);
+		emit_signal(SceneStringNames::get_singleton()->body_shape_entered, p_id, node, body_state.shapes[i].body_shape, body_state.shapes[i].area_shape);
 	}
 }
 
@@ -139,12 +140,13 @@ void Area2D::_body_exit_tree(ObjectID p_id) {
 	ERR_FAIL_COND(!node);
 	Map<ObjectID, BodyState>::Element *E = body_map.find(p_id);
 	ERR_FAIL_COND(!E);
-	ERR_FAIL_COND(!E->get().in_tree);
-	E->get().in_tree = false;
+	auto body_state = E->get();
+	ERR_FAIL_COND(!body_state.in_tree);
+	body_state.in_tree = false;
 	emit_signal(SceneStringNames::get_singleton()->body_exited, node);
-	for (int i = 0; i < E->get().shapes.size(); i++) {
+	for (int i = 0; i < body_state.shapes.size(); i++) {
 
-		emit_signal(SceneStringNames::get_singleton()->body_shape_exited, p_id, node, E->get().shapes[i].body_shape, E->get().shapes[i].area_shape);
+		emit_signal(SceneStringNames::get_singleton()->body_shape_exited, p_id, node, body_state.shapes[i].body_shape, body_state.shapes[i].area_shape);
 	}
 }
 
@@ -223,13 +225,14 @@ void Area2D::_area_enter_tree(ObjectID p_id) {
 
 	Map<ObjectID, AreaState>::Element *E = area_map.find(p_id);
 	ERR_FAIL_COND(!E);
-	ERR_FAIL_COND(E->get().in_tree);
+	auto area_state = E->get();
+	ERR_FAIL_COND(area_state.in_tree);
 
-	E->get().in_tree = true;
+	area_state.in_tree = true;
 	emit_signal(SceneStringNames::get_singleton()->area_entered, node);
-	for (int i = 0; i < E->get().shapes.size(); i++) {
+	for (int i = 0; i < area_state.shapes.size(); i++) {
 
-		emit_signal(SceneStringNames::get_singleton()->area_shape_entered, p_id, node, E->get().shapes[i].area_shape, E->get().shapes[i].self_shape);
+		emit_signal(SceneStringNames::get_singleton()->area_shape_entered, p_id, node, area_state.shapes[i].area_shape, area_state.shapes[i].self_shape);
 	}
 }
 
@@ -240,12 +243,13 @@ void Area2D::_area_exit_tree(ObjectID p_id) {
 	ERR_FAIL_COND(!node);
 	Map<ObjectID, AreaState>::Element *E = area_map.find(p_id);
 	ERR_FAIL_COND(!E);
-	ERR_FAIL_COND(!E->get().in_tree);
-	E->get().in_tree = false;
+	auto area_state = E->get();
+	ERR_FAIL_COND(!area_state.in_tree);
+	area_state.in_tree = false;
 	emit_signal(SceneStringNames::get_singleton()->area_exited, node);
-	for (int i = 0; i < E->get().shapes.size(); i++) {
+	for (int i = 0; i < area_state.shapes.size(); i++) {
 
-		emit_signal(SceneStringNames::get_singleton()->area_shape_exited, p_id, node, E->get().shapes[i].area_shape, E->get().shapes[i].self_shape);
+		emit_signal(SceneStringNames::get_singleton()->area_shape_exited, p_id, node, area_state.shapes[i].area_shape, area_state.shapes[i].self_shape);
 	}
 }
 
@@ -370,12 +374,13 @@ void Area2D::_clear_monitoring() {
 			node->disconnect(SceneStringNames::get_singleton()->tree_entered, this, SceneStringNames::get_singleton()->_area_enter_tree);
 			node->disconnect(SceneStringNames::get_singleton()->tree_exiting, this, SceneStringNames::get_singleton()->_area_exit_tree);
 
-			if (!E->get().in_tree)
+			auto area_state = E->get();
+			if (!area_state.in_tree)
 				continue;
 
-			for (int i = 0; i < E->get().shapes.size(); i++) {
+			for (int i = 0; i < area_state.shapes.size(); i++) {
 
-				emit_signal(SceneStringNames::get_singleton()->area_shape_exited, E->key(), node, E->get().shapes[i].area_shape, E->get().shapes[i].self_shape);
+				emit_signal(SceneStringNames::get_singleton()->area_shape_exited, E->key(), node, area_state.shapes[i].area_shape, area_state.shapes[i].self_shape);
 			}
 
 			emit_signal(SceneStringNames::get_singleton()->area_exited, obj);

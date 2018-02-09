@@ -78,7 +78,7 @@ ARVRServer::TrackerType ARVRPositionalTracker::get_type() const {
 	return type;
 };
 
-void ARVRPositionalTracker::set_name(const String p_name) {
+void ARVRPositionalTracker::set_name(const String &p_name) {
 	name = p_name;
 };
 

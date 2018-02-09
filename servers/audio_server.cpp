@@ -414,12 +414,13 @@ AudioFrame *AudioServer::thread_get_channel_mix_buffer(int p_bus, int p_buffer) 
 	ERR_FAIL_INDEX_V(p_bus, buses.size(), NULL);
 	ERR_FAIL_INDEX_V(p_buffer, buses[p_bus]->channels.size(), NULL);
 
-	AudioFrame *data = buses[p_bus]->channels[p_buffer].buffer.ptrw();
+	auto channel = buses[p_bus]->channels[p_buffer];
+	AudioFrame *data = channel.buffer.ptrw();
 
-	if (!buses[p_bus]->channels[p_buffer].used) {
-		buses[p_bus]->channels[p_buffer].used = true;
-		buses[p_bus]->channels[p_buffer].active = true;
-		buses[p_bus]->channels[p_buffer].last_mix_with_audio = mix_frames;
+	if (!channel.used) {
+		channel.used = true;
+		channel.active = true;
+		channel.last_mix_with_audio = mix_frames;
 		for (uint32_t i = 0; i < buffer_size; i++) {
 			data[i] = AudioFrame(0, 0);
 		}
